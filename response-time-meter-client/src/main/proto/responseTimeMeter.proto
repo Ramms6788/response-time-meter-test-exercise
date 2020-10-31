@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+
+package loopme;
+
+service ResponseTimeMeterService {
+  rpc meter(MeterRequest) returns (MeterResponse) {}
+}
+
+message MeterRequest {
+  string address = 1;
+}
+
+message MeterResponse {
+  int32 responseCode = 1;
+  int64 responseTime = 2;
+}
