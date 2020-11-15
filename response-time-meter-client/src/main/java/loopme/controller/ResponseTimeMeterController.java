@@ -5,6 +5,7 @@
 
 package loopme.controller;
 
+import loopme.MeterRequest;
 import loopme.service.ResponseTimeMeterGrpcService;
 import loopme.pojo.Request;
 import loopme.pojo.Response;
@@ -22,7 +23,11 @@ public class ResponseTimeMeterController {
 
     @PostMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public Response getResponseTimeForResourceAddress(@RequestBody Request request){
-        return responseTimeMeterGrpcService.meterResponseTime(request);
+        MeterRequest meterRequest = MeterRequest.newBuilder()
+            .setAddress(request.getAddress())
+            .build();
+
+        return Response.fromMeterResponse(responseTimeMeterGrpcService.meterResponseTime(meterRequest));
     }
 
     @ExceptionHandler({IllegalStateException.class})

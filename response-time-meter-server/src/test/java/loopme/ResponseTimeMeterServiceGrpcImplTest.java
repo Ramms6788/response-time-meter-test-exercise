@@ -8,18 +8,17 @@ package loopme;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import loopme.service.MeteringService;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @ActiveProfiles(ResponseTimeMeterServiceGrpcImplTest.TEST_PROFILE)
@@ -62,15 +61,15 @@ public class ResponseTimeMeterServiceGrpcImplTest {
                 .setResponseTime(meterRequest.getResponseTime())
                 .build();
 
-            when(meteringServiceMock.meterResponseTime(eq(givenAddress))).thenReturn(meterResponseMock);
+            Mockito.when(meteringServiceMock.meterResponseTime(ArgumentMatchers.eq(givenAddress))).thenReturn(meterResponseMock);
 
             //WHEN
             MeterResponse meterResponse = grpcTestClient.singleThreadedBlockingCall(channel, givenAddress);
 
             //THEN
-            assertThat(meterResponse).isNotNull();
-            assertThat(meterResponse.getResponseCode()).isEqualTo(meterRequest.getResponseCode());
-            assertThat(meterResponse.getResponseTime()).isEqualTo(meterRequest.getResponseTime());
+            Assertions.assertThat(meterResponse).isNotNull();
+            Assertions.assertThat(meterResponse.getResponseCode()).isEqualTo(meterRequest.getResponseCode());
+            Assertions.assertThat(meterResponse.getResponseTime()).isEqualTo(meterRequest.getResponseTime());
         });
     }
 

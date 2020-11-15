@@ -1,0 +1,13 @@
+server:
+  port: 8081
+
+grpc:
+  server:
+    host: localhost
+    port: 9091
+
+response-time-meter:
+  grpc:
+    server:
+      host: localhost
+      port: 9090

@@ -5,17 +5,20 @@
 
 package loopme.service;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import loopme.MeterRequest;
 import loopme.MeterResponse;
 import loopme.ResponseTimeMeterServiceGrpc;
-import loopme.pojo.Request;
-import loopme.pojo.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.util.Objects;
 
 @Service
 public class ResponseTimeMeterGrpcService {
@@ -28,33 +31,46 @@ public class ResponseTimeMeterGrpcService {
     @Value("${response-time-meter.grpc.server.port}")
     private int grpcServerPort;
 
-    public Response meterResponseTime(Request request){
-        ManagedChannel channel = ManagedChannelBuilder.forAddress(grpcServerHost, grpcServerPort)
+    private ManagedChannel channel;
+    private ResponseTimeMeterServiceGrpc.ResponseTimeMeterServiceBlockingStub blockingStub;
+    private ResponseTimeMeterServiceGrpc.ResponseTimeMeterServiceFutureStub futureStub;
+
+    @PostConstruct
+    public void init() {
+        channel = ManagedChannelBuilder.forAddress(grpcServerHost, grpcServerPort)
             .usePlaintext()
             .build();
 
-        ResponseTimeMeterServiceGrpc.ResponseTimeMeterServiceBlockingStub stub =
-            ResponseTimeMeterServiceGrpc.newBlockingStub(channel);
+       blockingStub = ResponseTimeMeterServiceGrpc.newBlockingStub(channel);
+       futureStub = ResponseTimeMeterServiceGrpc.newFutureStub(channel);
+    }
 
-        MeterRequest meterRequest = MeterRequest.newBuilder()
-            .setAddress(request.getAddress())
-            .build();
+    @PreDestroy
+    public void shutdown(){
+        if(Objects.nonNull(channel)){
+            channel.shutdown();
+        }
+    }
 
+    public MeterResponse meterResponseTime(MeterRequest meterRequest){
         try {
-            MeterResponse meterResponse = stub.meter(meterRequest);
-
-            Response response = new Response();
-            response.setResponseCode(meterResponse.getResponseCode());
-            response.setResponseTime(meterResponse.getResponseTime());
-
-            return response;
+            return blockingStub.meter(meterRequest);
         } catch (Exception ex){
-            String errorMessage = "Error while metering response time for resource address " + request.getAddress() +
+            String errorMessage = "Error while metering response time for resource address " + meterRequest.getAddress() +
                 ". Reason: " + ex.getMessage();
             logger.error(errorMessage);
             throw new IllegalStateException(errorMessage);
-        } finally {
-            channel.shutdown();
+        }
+    }
+
+    public ListenableFuture<MeterResponse> meterResponseTimeAsync(MeterRequest meterRequest) {
+        try {
+            return futureStub.meter(meterRequest);
+        } catch (Exception ex) {
+            String errorMessage = "Error while metering response time for resource address " + meterRequest.getAddress() +
+                ". Reason: " + ex.getMessage();
+            logger.error(errorMessage);
+            throw new IllegalStateException(errorMessage);
         }
     }
 }

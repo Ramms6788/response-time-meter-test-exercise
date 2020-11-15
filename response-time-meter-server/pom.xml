@@ -55,7 +55,6 @@
             <type>pom</type>
         </dependency>
 
-
         <!-- TEST DEPENDENCIES -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -76,7 +75,6 @@
             <version>${junit-jupiter-engine.version}</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>

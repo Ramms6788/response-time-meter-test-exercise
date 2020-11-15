@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Date;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -35,15 +34,13 @@ public class MeteringService {
             resourceAddress = HTTP_PREFIX + resourceAddress;
         }
 
-        Date start = new Date();
+        long start = System.currentTimeMillis();
 
         ResponseEntity<String> responseEntity = restTemplate.exchange(resourceAddress, HttpMethod.GET, null, String.class);
 
-        Date end = new Date();
-
         return MeterResponse.newBuilder()
             .setResponseCode(responseEntity.getStatusCodeValue())
-            .setResponseTime(end.getTime() - start.getTime())
+            .setResponseTime(System.currentTimeMillis() - start)
             .build();
     }
 }
